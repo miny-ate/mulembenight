@@ -41,10 +41,8 @@
     </div>
 
     <!-- Sign in / sign up card -->
-    <div class="card" id="authCard" style="max-width:560px; margin:0 auto;">
+     <div class="card" id="authCard" style="max-width:560px; margin:0 auto;">
       <h3>Admin sign-in</h3>
-      <div class="auth-toggle">
-      </div>
       <label for="authEmail">Email</label>
       <input type="email" id="authEmail" placeholder="you@kuwesa.org" autocomplete="username">
       <label for="authPassword">Password</label>
@@ -135,16 +133,6 @@
   // -----------------------------------------------------------------------
   // AUTH UI
   // -----------------------------------------------------------------------
-  let authMode = 'signin';
-  document.getElementById('toggleSignIn').addEventListener('click', () => setAuthMode('signin'));
-  document.getElementById('toggleSignUp').addEventListener('click', () => setAuthMode('signup'));
-  function setAuthMode(mode) {
-    authMode = mode;
-    document.getElementById('toggleSignIn').classList.toggle('active', mode === 'signin');
-    document.getElementById('toggleSignUp').classList.toggle('active', mode === 'signup');
-    document.getElementById('authSubmitBtn').textContent = mode === 'signin' ? 'Sign In' : 'Create Account';
-  }
-
   document.getElementById('authSubmitBtn').addEventListener('click', async () => {
     const statusEl = document.getElementById('authStatus');
     const email = document.getElementById('authEmail').value.trim();
@@ -152,15 +140,10 @@
     if (!isConfigured) { setStatus(statusEl, 'err', 'Firebase is not configured yet.'); return; }
     if (!email || !password) { setStatus(statusEl, 'err', 'Enter an email and password.'); return; }
 
-    setStatus(statusEl, 'pending', authMode === 'signin' ? 'Signing in…' : 'Creating account…');
+    setStatus(statusEl, 'pending', 'Signing in…');
     try {
-      if (authMode === 'signin') {
-        await firebase.auth().signInWithEmailAndPassword(email, password);
-        setStatus(statusEl, 'ok', 'Signed in.');
-      } else {
-        const cred = await firebase.auth().createUserWithEmailAndPassword(email, password);
-        setStatus(statusEl, 'ok', `Account created (uid: ${cred.user.uid}). Ask an admin to grant you a role in the Firebase console — see the code comments for how.`);
-      }
+      await firebase.auth().signInWithEmailAndPassword(email, password);
+      setStatus(statusEl, 'ok', 'Signed in.');
     } catch (err) {
       console.error(err);
       setStatus(statusEl, 'err', err.message || 'Authentication failed.');
