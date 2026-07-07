@@ -31,17 +31,17 @@
 //    pointing any page at a real Firebase project.
 // -----------------------------------------------------------------------
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyDNFUBzxkm7uSs-bt5uuzE8PNzRdIsFg_4",
+  authDomain: "mulembe-night.firebaseapp.com",
+  projectId: "mulembe-night",
+  storageBucket: "mulembe-night.firebasestorage.app",
+  messagingSenderId: "846816215218",
+  appId: "1:846816215218:web:39c0480d31eeea04e989ab"
 };
 
-const TICKET_SALT = "REPLACE_WITH_A_LONG_RANDOM_STRING"; // move server-side in production
+const TICKET_SALT = "062969a8e151f9e71938060bd1101632e4ae0e5313384422b0d36517ee5a3607"; // move server-side in production
 
-const isConfigured = firebaseConfig.apiKey !== "YOUR_API_KEY";
+const isConfigured = firebaseConfig.apiKey !== "AIzaSyDNFUBzxkm7uSs-bt5uuzE8PNzRdIsFg_4";
 
 let db = null;
 if (isConfigured) {
