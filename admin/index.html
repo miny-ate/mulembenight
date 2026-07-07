@@ -18,46 +18,33 @@
 <nav>
   <div class="wrap row">
     <a class="brand" href="../index.html">
-      <img src="../mulembe-logo.png" alt="KUWESA logo">
+      <img src="https://res.cloudinary.com/drkfufpw5/image/upload/v1783458112/mulembe-logo-icon_ietltd.png" alt="KUWSA logo">
       <span>MULEMBE NIGHT</span>
     </a>
-    <div class="links">
-      <a href="../index.html">Public site</a>
-      <a href="../gate/">Gate Scanner</a>
-    </div>
   </div>
 </nav>
 
 <div class="page-header">
   <div class="wrap">
     <a class="back-link" href="../index.html">← Back to Mulembe Night</a>
-    <p class="eyebrow">Behind the counter</p>
     <h1 class="gold-text">Staff &amp; Admin</h1>
-    <p>Create events, review tickets, and audit every gate scan.</p>
   </div>
 </div>
 
 <section style="border-top:none;">
   <div class="wrap">
-    <div id="configBanner" class="config-banner">
-      ⚠ Firebase is not configured yet. Fill in <code class="inline">firebaseConfig</code> and <code class="inline">TICKET_SALT</code> in <code class="inline">assets/app.js</code>.
-    </div>
 
     <div class="role-bar" id="roleBar">
-      <span class="who mono" id="roleWho">Not signed in</span>
       <span>
-        <span class="role-badge none" id="roleBadge">no access</span>
         <button class="btn small ghost" id="signOutBtn" style="display:none; margin-left:8px;">Sign out</button>
       </span>
     </div>
 
     <!-- Sign in / sign up card -->
     <div class="card" id="authCard" style="max-width:560px; margin:0 auto;">
-      <h3>Staff / admin sign-in</h3>
-      <p class="sub">Accounts are created here, but a role (staff or admin) must be granted by an existing admin in the Firebase console before you get access. See the comments in <code class="inline">assets/app.js</code> for the exact steps.</p>
+      <h3>Admin sign-in</h3>
       <div class="auth-toggle">
         <button type="button" id="toggleSignIn" class="active">Sign in</button>
-        <button type="button" id="toggleSignUp">Create account</button>
       </div>
       <label for="authEmail">Email</label>
       <input type="email" id="authEmail" placeholder="you@kuwesa.org" autocomplete="username">
@@ -141,7 +128,7 @@
 
 <footer>
   <div class="wrap">
-    <p>Mulembe Night · Kenyatta University Western Students Association (KUWESA)</p>
+    <p>Mulembe Night · Kenyatta University Western Students Association (KUWSA)</p>
   </div>
 </footer>
 
