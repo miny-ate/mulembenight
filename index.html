@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mulembe Night — Kenyatta University Western Students Association</title>
+<title>Mulembe Night — KUWESA</title>
+<meta name="description" content="Mulembe Night by Kenyatta University Western Students Association — secure, verified, single-use tickets.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -13,254 +14,359 @@
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <style>
   :root{
-    --bg-deep:#06211f;
-    --bg-panel:#0b2f2c;
-    --bg-panel-2:#0e3a36;
-    --teal:#2fd7c4;
-    --teal-dim:#1a5a52;
-    --gold:#d7a34e;
-    --gold-light:#f0c874;
-    --cream:#f4ede0;
-    --text-dim:#9fc9c2;
+    --onyx:#050505;
+    --charcoal:#121110;
+    --charcoal-2:#1b1917;
+    --line:rgba(212,175,55,0.16);
+    --gold:#d4af37;
+    --gold-bright:#f6e27a;
+    --gold-deep:#8a6a1f;
+    --ivory:#f3ecd8;
+    --text-dim:#a79f8f;
+    --teal:#20c7ad;
     --danger:#e2685a;
-    --ok:#5fd68a;
+    --ok:#63d98d;
   }
   *{box-sizing:border-box;}
   html{scroll-behavior:smooth;}
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; scroll-behavior:auto !important;}
+  }
   body{
     margin:0;
-    background:
-      radial-gradient(circle at 50% -10%, rgba(47,215,196,0.16), transparent 55%),
-      radial-gradient(circle at 90% 20%, rgba(215,163,78,0.08), transparent 40%),
-      var(--bg-deep);
-    color:var(--cream);
+    background:var(--onyx);
+    color:var(--ivory);
     font-family:'Space Grotesk', sans-serif;
-    line-height:1.5;
-    min-height:100vh;
+    line-height:1.55;
   }
-  h1,h2,h3{font-family:'Anton', sans-serif; letter-spacing:0.02em; font-weight:400; margin:0;}
+  h1,h2,h3{font-family:'Cinzel', serif; font-weight:700; margin:0; letter-spacing:0.01em;}
   .mono{font-family:'Space Mono', monospace;}
   a{color:inherit;}
-  .wrap{max-width:1040px; margin:0 auto; padding:0 24px;}
+  .wrap{max-width:1100px; margin:0 auto; padding:0 24px;}
   .eyebrow{
-    font-family:'Space Mono', monospace;
-    text-transform:uppercase;
-    letter-spacing:0.22em;
-    font-size:12px;
-    color:var(--gold-light);
+    font-family:'Space Mono', monospace; text-transform:uppercase;
+    letter-spacing:0.24em; font-size:11.5px; color:var(--gold-bright);
   }
+  ::selection{background:var(--gold); color:#100c02;}
+  :focus-visible{outline:2px solid var(--gold-bright); outline-offset:2px;}
+
+  .gold-text{
+    background:linear-gradient(100deg, var(--gold-deep) 0%, var(--gold-bright) 35%, var(--gold) 55%, var(--gold-bright) 75%, var(--gold-deep) 100%);
+    background-size:250% auto;
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    animation:shine 7s linear infinite;
+  }
+  @keyframes shine{ to{ background-position:-250% center; } }
+
   /* ---------- NAV ---------- */
   nav{
-    position:sticky; top:0; z-index:40;
-    background:rgba(6,33,31,0.85);
-    backdrop-filter:blur(10px);
-    border-bottom:1px solid rgba(47,215,196,0.15);
+    position:sticky; top:0; z-index:50;
+    background:rgba(5,5,5,0.82); backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--line);
   }
-  nav .wrap{display:flex; align-items:center; justify-content:space-between; padding:14px 24px;}
-  .brand{display:flex; align-items:center; gap:10px;}
-  .brand img{height:34px; width:34px; border-radius:50%;}
-  .brand span{font-family:'Anton', sans-serif; font-size:18px; letter-spacing:0.03em;}
-  nav .links{display:flex; gap:22px; font-size:14px; color:var(--text-dim);}
+  nav .row{display:flex; align-items:center; justify-content:space-between; padding:14px 24px;}
+  .brand{display:flex; align-items:center; gap:11px;}
+  .brand img{height:36px; width:36px; border-radius:50%; box-shadow:0 0 0 1.5px var(--gold), 0 0 18px rgba(212,175,55,0.35);}
+  .brand span{font-family:'Cinzel', serif; font-size:16px; letter-spacing:0.08em; color:var(--ivory);}
+  nav .links{display:flex; align-items:center; gap:26px; font-size:13.5px; color:var(--text-dim);}
   nav .links a{text-decoration:none; transition:color .2s;}
-  nav .links a:hover{color:var(--gold-light);}
+  nav .links a:hover{color:var(--gold-bright);}
+
+  .marquee{
+    background:var(--charcoal); border-bottom:1px solid var(--line);
+    overflow:hidden; white-space:nowrap; padding:8px 0;
+  }
+  .marquee .track{display:inline-block; animation:scrollx 22s linear infinite;}
+  .marquee span{
+    font-family:'Space Mono', monospace; font-size:11.5px; letter-spacing:0.2em;
+    color:var(--gold); text-transform:uppercase; margin:0 22px;
+  }
+  @keyframes scrollx{ from{transform:translateX(0);} to{transform:translateX(-50%);} }
+
+  /* ---------- BUTTONS ---------- */
+  .btn{
+    position:relative; display:inline-block; border:none; cursor:pointer; overflow:hidden;
+    font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:14.5px;
+    padding:14px 30px; border-radius:6px;
+    background:linear-gradient(135deg, var(--gold-deep), var(--gold) 45%, var(--gold-bright) 100%);
+    color:#150f02; transition:transform .15s, box-shadow .15s;
+  }
+  .btn:hover{transform:translateY(-2px); box-shadow:0 10px 28px rgba(212,175,55,0.28);}
+  .btn::after{
+    content:""; position:absolute; top:0; left:-60%; width:40%; height:100%;
+    background:linear-gradient(115deg, transparent, rgba(255,255,255,0.55), transparent);
+    transform:skewX(-20deg); transition:left .5s;
+  }
+  .btn:hover::after{left:130%;}
+  .btn.ghost{background:transparent; color:var(--gold-bright); border:1px solid var(--gold-deep);}
+  .btn.ghost::after{display:none;}
+  .btn.ghost:hover{box-shadow:0 10px 24px rgba(212,175,55,0.12); border-color:var(--gold);}
+  .btn.small{padding:9px 18px; font-size:12.5px;}
+  .btn:disabled{opacity:0.45; cursor:not-allowed; transform:none; box-shadow:none;}
+  .btn:disabled::after{display:none;}
+
+  .pill{
+    border:1px solid var(--gold-deep); background:rgba(212,175,55,0.06);
+    padding:9px 18px; border-radius:999px; font-size:12.5px;
+    font-family:'Space Mono', monospace; color:var(--gold-bright);
+  }
+  .pill.teal{border-color:rgba(32,199,173,0.4); color:var(--teal); background:rgba(32,199,173,0.07);}
 
   /* ---------- HERO ---------- */
-  header.hero{padding:76px 0 60px; text-align:center; position:relative; overflow:hidden;}
-  header.hero::before{
-    content:"";
-    position:absolute; inset:0;
+  header.hero{
+    padding:90px 0 70px; text-align:center; position:relative; overflow:hidden;
     background:
-      repeating-linear-gradient(115deg, transparent 0 46px, rgba(47,215,196,0.05) 46px 47px);
-    pointer-events:none;
+      radial-gradient(ellipse at 50% 0%, rgba(212,175,55,0.14), transparent 55%),
+      radial-gradient(circle at 88% 78%, rgba(32,199,173,0.06), transparent 40%);
   }
-  .hero-logo{
-    width:132px; height:132px; border-radius:50%;
-    margin:0 auto 22px;
-    box-shadow:0 0 0 2px rgba(215,163,78,0.5), 0 0 60px rgba(47,215,196,0.35);
+  .aura{
+    position:relative; width:168px; height:168px; margin:0 auto 26px;
   }
-  .hero h1{font-size:clamp(48px,9vw,92px); color:var(--cream); text-shadow:0 0 40px rgba(47,215,196,0.35);}
-  .hero h1 em{font-style:normal; color:var(--gold);}
-  .hero p.tagline{color:var(--text-dim); font-size:17px; max-width:480px; margin:14px auto 30px;}
-  .hero-meta{
-    display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-bottom:34px;
+  .aura::before{
+    content:""; position:absolute; inset:-16px; border-radius:50%;
+    background:conic-gradient(from 0deg, var(--gold-deep), var(--gold-bright), var(--teal), var(--gold-deep));
+    filter:blur(2px); opacity:0.55; animation:spin 9s linear infinite;
   }
-  .pill{
-    border:1px solid var(--teal-dim);
-    background:rgba(47,215,196,0.06);
-    padding:9px 18px; border-radius:999px;
-    font-size:13px; font-family:'Space Mono', monospace;
-    color:var(--teal);
+  .aura::after{
+    content:""; position:absolute; inset:0; border-radius:50%;
+    background:var(--onyx);
   }
-  .pill.gold{border-color:rgba(215,163,78,0.4); color:var(--gold-light); background:rgba(215,163,78,0.07);}
-  .btn{
-    display:inline-block; border:none; cursor:pointer;
-    font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:15px;
-    padding:14px 30px; border-radius:8px;
-    background:var(--gold); color:#1b1206;
-    transition:transform .15s, box-shadow .15s;
+  .aura img{
+    position:absolute; inset:8px; width:calc(100% - 16px); height:calc(100% - 16px);
+    border-radius:50%; object-fit:cover; z-index:2; box-shadow:0 0 40px rgba(212,175,55,0.25);
   }
-  .btn:hover{transform:translateY(-2px); box-shadow:0 8px 24px rgba(215,163,78,0.3);}
-  .btn.ghost{
-    background:transparent; color:var(--teal); border:1px solid var(--teal-dim);
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  .hero h1{font-size:clamp(46px,9vw,96px); letter-spacing:0.03em;}
+  .hero p.tagline{color:var(--text-dim); font-size:17px; max-width:500px; margin:16px auto 30px;}
+  .hero-meta{display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-bottom:34px;}
+  .hero-ctas{display:flex; gap:14px; justify-content:center; flex-wrap:wrap;}
+
+  .countdown{
+    display:flex; gap:14px; justify-content:center; margin:36px 0 6px; flex-wrap:wrap;
   }
-  .btn.ghost:hover{box-shadow:0 8px 24px rgba(47,215,196,0.15);}
-  .btn:disabled{opacity:0.5; cursor:not-allowed; transform:none; box-shadow:none;}
+  .countdown .unit{
+    min-width:78px; padding:14px 10px; border-radius:10px;
+    background:var(--charcoal); border:1px solid var(--line);
+  }
+  .countdown .unit b{display:block; font-family:'Cinzel', serif; font-size:28px; color:var(--gold-bright);}
+  .countdown .unit span{font-family:'Space Mono', monospace; font-size:10px; letter-spacing:0.16em; color:var(--text-dim); text-transform:uppercase;}
+  .soon-badge{
+    display:inline-flex; align-items:center; gap:9px;
+    padding:10px 20px; border-radius:999px; border:1px solid var(--gold-deep);
+    background:rgba(212,175,55,0.06); font-family:'Space Mono', monospace; font-size:12.5px; color:var(--gold-bright);
+  }
+  .soon-badge .dot{width:8px; height:8px; border-radius:50%; background:var(--gold-bright); animation:pulse 1.6s ease-in-out infinite;}
+  @keyframes pulse{ 0%,100%{opacity:1; box-shadow:0 0 0 0 rgba(246,226,122,0.5);} 50%{opacity:0.5; box-shadow:0 0 0 7px rgba(246,226,122,0);} }
 
   /* ---------- SECTIONS ---------- */
-  section{padding:70px 0; border-top:1px solid rgba(47,215,196,0.1);}
-  .section-head{margin-bottom:34px;}
-  .section-head h2{font-size:clamp(28px,5vw,40px); color:var(--cream); margin-top:6px;}
+  section{padding:76px 0; border-top:1px solid var(--line);}
+  .section-head{margin-bottom:36px; text-align:left;}
+  .section-head.center{text-align:center;}
+  .section-head h2{font-size:clamp(28px,5vw,42px); margin-top:6px;}
 
-  /* ---------- ARTISTS ---------- */
-  .artist-grid{
-    display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:18px;
-  }
+  /* ---------- LINEUP ---------- */
+  .artist-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:18px;}
   .artist-card{
-    background:var(--bg-panel);
-    border:1px solid rgba(47,215,196,0.12);
-    border-radius:14px; padding:22px 18px; position:relative; overflow:hidden;
+    background:linear-gradient(180deg, var(--charcoal), var(--charcoal-2));
+    border:1px solid var(--line); border-radius:14px; padding:24px 20px;
+    transition:border-color .2s, transform .2s;
   }
-  .artist-card .slot{
-    font-family:'Space Mono', monospace; font-size:11px; letter-spacing:0.15em;
-    color:var(--gold-light); text-transform:uppercase;
-  }
-  .artist-card h3{font-size:22px; margin-top:10px; color:var(--cream);}
+  .artist-card:hover{border-color:var(--gold-deep); transform:translateY(-3px);}
+  .artist-card .slot{font-family:'Space Mono', monospace; font-size:10.5px; letter-spacing:0.16em; color:var(--gold-bright); text-transform:uppercase;}
+  .artist-card h3{font-size:21px; margin-top:10px; font-family:'Space Grotesk', sans-serif; font-weight:700;}
   .artist-card p{color:var(--text-dim); font-size:13px; margin:6px 0 0;}
   .artist-card.tba{
-    border-style:dashed; border-color:var(--teal-dim);
+    border-style:dashed; border-color:var(--gold-deep);
     display:flex; align-items:center; justify-content:center; text-align:center;
-    color:var(--text-dim); font-family:'Space Mono', monospace; font-size:13px;
+    color:var(--text-dim); font-family:'Space Mono', monospace; font-size:12.5px;
   }
 
-  /* ---------- TICKET FLOW ---------- */
+  /* ---------- TIERS ---------- */
+  .tier-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:20px;}
+  .tier-card{
+    position:relative; background:linear-gradient(180deg, var(--charcoal), var(--charcoal-2));
+    border:1px solid var(--line); border-radius:16px; padding:30px 24px;
+    display:flex; flex-direction:column; transition:transform .2s, box-shadow .2s;
+  }
+  .tier-card:hover{transform:translateY(-5px); box-shadow:0 18px 40px rgba(0,0,0,0.4);}
+  .tier-card.featured{border-color:var(--gold); box-shadow:0 0 0 1px var(--gold), 0 20px 50px rgba(212,175,55,0.12);}
+  .tier-ribbon{
+    position:absolute; top:-11px; right:20px; background:var(--gold); color:#150f02;
+    font-family:'Space Mono', monospace; font-size:10.5px; letter-spacing:0.1em;
+    padding:5px 12px; border-radius:999px; font-weight:700;
+  }
+  .tier-card h3{font-size:22px; font-family:'Cinzel', serif;}
+  .tier-price{font-family:'Space Mono', monospace; font-size:30px; color:var(--gold-bright); margin:12px 0 16px;}
+  .tier-price small{font-size:13px; color:var(--text-dim); font-family:'Space Grotesk', sans-serif;}
+  .tier-perks{list-style:none; padding:0; margin:0 0 24px; flex:1; display:flex; flex-direction:column; gap:9px;}
+  .tier-perks li{font-size:13.5px; color:var(--text-dim); display:flex; gap:8px;}
+  .tier-perks li::before{content:"✦"; color:var(--gold);}
+
+  /* ---------- PURCHASE ---------- */
   .flow-grid{display:grid; grid-template-columns:1fr; gap:40px;}
-  @media(min-width:860px){ .flow-grid{grid-template-columns:1.1fr 1fr;} }
+  @media(min-width:880px){ .flow-grid{grid-template-columns:1.1fr 1fr;} }
   .card{
-    background:var(--bg-panel);
-    border:1px solid rgba(47,215,196,0.14);
-    border-radius:16px; padding:28px;
+    background:linear-gradient(180deg, var(--charcoal), var(--charcoal-2));
+    border:1px solid var(--line); border-radius:16px; padding:30px;
   }
-  .card h3{font-size:20px; color:var(--gold-light); margin-bottom:6px;}
+  .card h3{font-size:20px; color:var(--gold-bright); margin-bottom:6px; font-family:'Space Grotesk', sans-serif; font-weight:700;}
   .card .sub{color:var(--text-dim); font-size:13px; margin-bottom:22px;}
-  label{display:block; font-size:13px; color:var(--text-dim); margin:16px 0 6px;}
-  input[type=text], input[type=email], input[type=tel], textarea, select{
+  label{display:block; font-size:12.5px; color:var(--text-dim); margin:16px 0 6px; text-transform:uppercase; letter-spacing:0.06em;}
+  input[type=text], input[type=tel], textarea, select{
     width:100%; padding:12px 14px; border-radius:8px;
-    background:var(--bg-deep); border:1px solid var(--teal-dim);
-    color:var(--cream); font-family:'Space Grotesk', sans-serif; font-size:14px;
+    background:var(--onyx); border:1px solid var(--line); color:var(--ivory);
+    font-family:'Space Grotesk', sans-serif; font-size:14px;
   }
-  textarea{resize:vertical; min-height:90px; font-family:'Space Mono', monospace; font-size:13px;}
-  input:focus, textarea:focus, select:focus{outline:2px solid var(--gold); outline-offset:1px;}
+  textarea{resize:vertical; min-height:90px; font-family:'Space Mono', monospace; font-size:12.5px;}
+  input:focus, textarea:focus, select:focus{outline:2px solid var(--gold); outline-offset:1px; border-color:var(--gold);}
   .hint{font-size:11.5px; color:var(--text-dim); margin-top:6px;}
+  .tier-readout{
+    margin-top:8px; padding:12px 14px; border-radius:8px; background:rgba(212,175,55,0.06);
+    border:1px solid var(--gold-deep); font-family:'Space Mono', monospace; font-size:12.5px; color:var(--gold-bright);
+    display:flex; justify-content:space-between; align-items:center;
+  }
   .steps{list-style:none; margin:0 0 22px; padding:0; display:flex; flex-direction:column; gap:10px;}
   .steps li{display:flex; gap:10px; font-size:13px; color:var(--text-dim); align-items:flex-start;}
   .steps li .n{
     flex:none; width:20px; height:20px; border-radius:50%;
-    background:var(--teal-dim); color:var(--teal);
+    background:rgba(212,175,55,0.12); color:var(--gold-bright);
     font-family:'Space Mono', monospace; font-size:11px;
     display:flex; align-items:center; justify-content:center; margin-top:1px;
   }
-
   .status-box{
-    margin-top:18px; padding:12px 14px; border-radius:8px; font-size:13px;
+    margin-top:18px; padding:12px 14px; border-radius:8px; font-size:12.5px;
     display:none; font-family:'Space Mono', monospace;
   }
   .status-box.show{display:block;}
-  .status-box.ok{background:rgba(95,214,138,0.12); border:1px solid rgba(95,214,138,0.4); color:var(--ok);}
-  .status-box.err{background:rgba(226,104,90,0.12); border:1px solid rgba(226,104,90,0.4); color:var(--danger);}
-  .status-box.pending{background:rgba(47,215,196,0.1); border:1px solid rgba(47,215,196,0.3); color:var(--teal);}
+  .status-box.ok{background:rgba(99,217,141,0.1); border:1px solid rgba(99,217,141,0.4); color:var(--ok);}
+  .status-box.err{background:rgba(226,104,90,0.1); border:1px solid rgba(226,104,90,0.4); color:var(--danger);}
+  .status-box.pending{background:rgba(212,175,55,0.08); border:1px solid var(--gold-deep); color:var(--gold-bright);}
 
-  /* ---------- TICKET STUB (signature element) ---------- */
-  .stub-wrap{display:flex; align-items:center; justify-content:center; min-height:100%;}
+  /* ---------- TICKET STUB ---------- */
+  .stub-wrap{display:flex; align-items:center; justify-content:center;}
   .ticket-stub{
-    display:none;
-    width:100%; max-width:340px;
-    background:linear-gradient(180deg, var(--bg-panel-2), var(--bg-panel));
-    border-radius:14px;
-    position:relative;
-    box-shadow:0 20px 50px rgba(0,0,0,0.45);
+    display:none; width:100%; max-width:340px; position:relative; border-radius:16px;
+    background:linear-gradient(180deg, #191510, #100d09);
+    box-shadow:0 24px 60px rgba(0,0,0,0.55);
     transform:rotate(-1.2deg);
+    border:1px solid var(--gold-deep);
   }
   .ticket-stub.show{display:block;}
-  .ticket-stub .top{padding:22px 22px 16px; text-align:center;}
-  .ticket-stub .top .eyebrow{color:var(--gold-light);}
-  .ticket-stub .top h3{font-size:24px; color:var(--cream); margin-top:4px;}
-  .ticket-stub .perforation{
-    position:relative; height:0; border-top:2px dashed rgba(244,237,224,0.25); margin:0 18px;
+  .ticket-stub::before{
+    content:""; position:absolute; inset:0; border-radius:16px; padding:1px;
+    background:linear-gradient(120deg, var(--gold-deep), var(--gold-bright), var(--gold-deep));
+    -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite:xor; mask-composite:exclude; pointer-events:none;
   }
+  .ticket-stub .top{padding:22px 22px 16px; text-align:center;}
+  .ticket-stub .top h3{font-size:23px; margin-top:4px;}
+  .stub-tier{
+    display:inline-block; margin-top:8px; padding:4px 12px; border-radius:999px;
+    font-family:'Space Mono', monospace; font-size:10.5px; letter-spacing:0.1em;
+    background:var(--gold); color:#150f02; text-transform:uppercase;
+  }
+  .perforation{position:relative; height:0; border-top:2px dashed rgba(243,236,216,0.2); margin:0 18px;}
   .perforation::before, .perforation::after{
-    content:""; position:absolute; top:-11px; width:22px; height:22px;
-    background:var(--bg-deep); border-radius:50%;
+    content:""; position:absolute; top:-11px; width:22px; height:22px; background:var(--onyx); border-radius:50%;
   }
   .perforation::before{left:-33px;}
   .perforation::after{right:-33px;}
-  .ticket-stub .qr-area{
-    padding:22px; display:flex; flex-direction:column; align-items:center; gap:10px;
-  }
-  .ticket-stub .qr-area canvas{border-radius:8px; background:#fff; padding:10px;}
-  .ticket-stub .tid{font-family:'Space Mono', monospace; font-size:11px; color:var(--text-dim); word-break:break-all; text-align:center;}
-  .ticket-stub .meta-row{
-    display:flex; justify-content:space-between; padding:0 22px 22px;
-    font-family:'Space Mono', monospace; font-size:11px; color:var(--text-dim);
-  }
-  .ticket-stub .meta-row b{color:var(--gold-light); display:block; font-size:13px; font-family:'Space Grotesk', sans-serif;}
+  .qr-area{padding:22px; display:flex; flex-direction:column; align-items:center; gap:10px;}
+  .qr-area canvas{border-radius:8px; background:#fff; padding:10px;}
+  .tid{font-family:'Space Mono', monospace; font-size:10.5px; color:var(--text-dim); word-break:break-all; text-align:center;}
+  .meta-row{display:flex; justify-content:space-between; padding:0 22px 22px; font-family:'Space Mono', monospace; font-size:10.5px; color:var(--text-dim);}
+  .meta-row b{color:var(--gold-bright); display:block; font-size:13px; font-family:'Space Grotesk', sans-serif;}
   .stub-actions{display:flex; gap:10px; margin-top:16px; width:100%; max-width:340px;}
   .stub-actions .btn{flex:1; text-align:center; padding:11px;}
 
-  /* ---------- GATE / SCANNER ---------- */
-  .gate-card{max-width:520px; margin:0 auto;}
-  #reader{border-radius:12px; overflow:hidden; margin-top:16px; border:1px solid var(--teal-dim);}
-  .scan-result{
-    margin-top:16px; padding:18px; border-radius:10px; text-align:center;
-    font-family:'Space Mono', monospace; font-size:14px; display:none;
-  }
+  /* ---------- GATE ---------- */
+  .gate-card{max-width:540px; margin:0 auto;}
+  #reader{border-radius:12px; overflow:hidden; margin-top:16px; border:1px solid var(--line);}
+  .scan-result{margin-top:16px; padding:18px; border-radius:10px; text-align:center; font-family:'Space Mono', monospace; font-size:13.5px; display:none;}
   .scan-result.show{display:block;}
-  .scan-result.ok{background:rgba(95,214,138,0.14); border:1px solid var(--ok); color:var(--ok);}
-  .scan-result.err{background:rgba(226,104,90,0.14); border:1px solid var(--danger); color:var(--danger);}
+  .scan-result.ok{background:rgba(99,217,141,0.12); border:1px solid var(--ok); color:var(--ok);}
+  .scan-result.err{background:rgba(226,104,90,0.12); border:1px solid var(--danger); color:var(--danger);}
 
-  footer{padding:40px 0; text-align:center; color:var(--text-dim); font-size:12.5px; border-top:1px solid rgba(47,215,196,0.1);}
-  footer .mono{color:var(--teal); opacity:0.8;}
-
-  code.inline{
-    background:rgba(47,215,196,0.1); border:1px solid var(--teal-dim);
-    padding:2px 6px; border-radius:4px; font-family:'Space Mono', monospace; font-size:12px;
+  /* ---------- FAQ ---------- */
+  .faq-item{border-bottom:1px solid var(--line); padding:16px 0;}
+  .faq-item summary{
+    cursor:pointer; list-style:none; display:flex; justify-content:space-between; align-items:center;
+    font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:15px; color:var(--ivory);
   }
+  .faq-item summary::-webkit-details-marker{display:none;}
+  .faq-item summary::after{content:"+"; color:var(--gold-bright); font-size:20px; transition:transform .2s;}
+  .faq-item[open] summary::after{transform:rotate(45deg);}
+  .faq-item p{color:var(--text-dim); font-size:13.5px; margin:12px 0 0;}
 
   .config-banner{
-    background:rgba(215,163,78,0.1); border:1px solid rgba(215,163,78,0.35);
-    color:var(--gold-light); font-size:13px; padding:12px 16px; border-radius:10px;
-    display:none; margin-bottom:20px; font-family:'Space Mono', monospace;
+    background:rgba(212,175,55,0.08); border:1px solid var(--gold-deep); color:var(--gold-bright);
+    font-size:12.5px; padding:12px 16px; border-radius:10px; display:none; margin-bottom:20px; font-family:'Space Mono', monospace;
   }
   .config-banner.show{display:block;}
+  code.inline{background:rgba(212,175,55,0.1); border:1px solid var(--gold-deep); padding:2px 6px; border-radius:4px; font-family:'Space Mono', monospace; font-size:11.5px;}
+
+  footer{padding:44px 0; text-align:center; border-top:1px solid var(--line);}
+  .socials{display:flex; gap:16px; justify-content:center; margin-bottom:16px; font-size:13px;}
+  .socials a{
+    padding:9px 16px; border:1px solid var(--gold-deep); border-radius:999px; text-decoration:none;
+    color:var(--gold-bright); transition:background .2s;
+  }
+  .socials a:hover{background:rgba(212,175,55,0.08);}
+  footer p{color:var(--text-dim); font-size:12px; margin:4px 0;}
 </style>
 </head>
 <body>
 
 <nav>
-  <div class="wrap">
+  <div class="wrap row">
     <div class="brand">
       <img src="mulembe-logo.png" alt="KUWESA logo">
       <span>MULEMBE NIGHT</span>
     </div>
     <div class="links">
       <a href="#lineup">Lineup</a>
-      <a href="#tickets">Get a Ticket</a>
+      <a href="#tiers">Tickets</a>
+      <a href="#faq">FAQ</a>
       <a href="#gate">Gate Scanner</a>
+      <a href="#tickets" class="btn small">Get Tickets</a>
     </div>
   </div>
 </nav>
 
+<div class="marquee">
+  <div class="track">
+    <span>★ MULEMBE NIGHT</span><span>★ KUWESA PRESENTS</span><span>★ VERIFIED TICKETS ONLY</span><span>★ ONE NIGHT, ONE NATION</span>
+    <span>★ MULEMBE NIGHT</span><span>★ KUWESA PRESENTS</span><span>★ VERIFIED TICKETS ONLY</span><span>★ ONE NIGHT, ONE NATION</span>
+  </div>
+</div>
+
 <header class="hero">
   <div class="wrap">
-    <img src="mulembe-logo.png" alt="Kenyatta University Western Students Association" class="hero-logo">
+    <div class="aura"><img src="mulembe-logo.png" alt="Kenyatta University Western Students Association"></div>
     <p class="eyebrow">Kenyatta University Western Students Association presents</p>
-    <h1>MULEMBE <em>NIGHT</em></h1>
-    <p class="tagline">One night, one nation. KUWESA brings the Mulembe Nation together for music, culture and community — secure, verified tickets only.</p>
+    <h1 class="gold-text">MULEMBE NIGHT</h1>
+    <p class="tagline">The Mulembe Nation gathers for one unforgettable night of music, culture and community. Every ticket is signed, verified and single-use — no fakes, no duplicates.</p>
+
     <div class="hero-meta">
-      <span class="pill">📅 Date — to be confirmed</span>
       <span class="pill">📍 Venue — to be confirmed</span>
-      <span class="pill gold">🎟️ Verified entry only</span>
+      <span class="pill teal">🎟️ Verified entry only</span>
     </div>
-    <a href="#tickets" class="btn">Get Your Ticket</a>
+
+    <div id="countdownWrap">
+      <div class="soon-badge" id="soonBadge"><span class="dot"></span> Date dropping soon — follow KUWESA for the announcement</div>
+      <div class="countdown" id="countdown" style="display:none;">
+        <div class="unit"><b id="cdDays">00</b><span>Days</span></div>
+        <div class="unit"><b id="cdHours">00</b><span>Hours</span></div>
+        <div class="unit"><b id="cdMins">00</b><span>Mins</span></div>
+        <div class="unit"><b id="cdSecs">00</b><span>Secs</span></div>
+      </div>
+    </div>
+
+    <div class="hero-ctas" style="margin-top:32px;">
+      <a href="#tiers" class="btn">Choose Your Ticket</a>
+      <a href="#lineup" class="btn ghost">View Lineup</a>
+    </div>
   </div>
 </header>
 
@@ -274,7 +380,7 @@
       <div class="artist-card">
         <span class="slot">Headliner</span>
         <h3>To be announced</h3>
-        <p>KUWESA is finalising the headline act — follow our socials for the reveal.</p>
+        <p>KUWESA is finalising the headline act — the reveal drops with the date.</p>
       </div>
       <div class="artist-card">
         <span class="slot">Support act</span>
@@ -286,34 +392,46 @@
         <h3>To be announced</h3>
         <p>Local Western Kenya artists carrying the Mulembe sound to campus.</p>
       </div>
-      <div class="artist-card tba">
-        + More acts<br>being confirmed
-      </div>
+      <div class="artist-card tba">+ More acts<br>being confirmed</div>
     </div>
+  </div>
+</section>
+
+<section id="tiers">
+  <div class="wrap">
+    <div class="section-head center">
+      <p class="eyebrow">Choose your experience</p>
+      <h2>Ticket tiers</h2>
+    </div>
+    <div class="tier-grid" id="tierGrid"><!-- rendered by JS from TIERS config --></div>
   </div>
 </section>
 
 <section id="tickets">
   <div class="wrap">
-    <div class="section-head">
+    <div class="section-head center">
       <p class="eyebrow">Step right up</p>
-      <h2>Get your ticket</h2>
+      <h2>Claim your ticket</h2>
     </div>
 
     <div id="configBanner" class="config-banner">
-      ⚠ Firebase is not configured yet. Open this file and fill in <code class="inline">firebaseConfig</code> and <code class="inline">TICKET_SALT</code> near the bottom of the page before going live.
+      ⚠ Firebase is not configured yet. Fill in <code class="inline">firebaseConfig</code> and <code class="inline">TICKET_SALT</code> near the bottom of the page before going live.
     </div>
 
     <div class="flow-grid">
       <div class="card">
-        <h3>1. Pay, then claim your ticket</h3>
-        <p class="sub">Pay via M-Pesa Till/Paybill, then paste the exact confirmation SMS below. Each M-Pesa code can only ever be redeemed once.</p>
+        <h3>Pay, then claim</h3>
+        <p class="sub">Pay via M-Pesa Till/Paybill for your chosen tier, then paste the exact confirmation SMS below. Each M-Pesa code redeems exactly one ticket, and the amount is checked against your tier.</p>
 
         <ol class="steps">
-          <li><span class="n">1</span> Send payment to the KUWESA Till Number (announced on our socials).</li>
+          <li><span class="n">1</span> Send the tier's exact amount to the KUWESA Till Number.</li>
           <li><span class="n">2</span> Paste the confirmation SMS you receive from M-Pesa, unedited.</li>
-          <li><span class="n">3</span> We verify the code hasn't been used before, then issue your ticket instantly.</li>
+          <li><span class="n">3</span> We verify the code and amount, then issue your signed QR ticket instantly.</li>
         </ol>
+
+        <label for="tierSelect">Ticket tier</label>
+        <select id="tierSelect"></select>
+        <div class="tier-readout"><span>Expected amount</span><b id="expectedAmount" class="mono">—</b></div>
 
         <label for="fullName">Full name</label>
         <input type="text" id="fullName" placeholder="As it appears on your ID" autocomplete="name">
@@ -322,8 +440,8 @@
         <input type="tel" id="phone" placeholder="07XX XXX XXX" autocomplete="tel">
 
         <label for="mpesaMsg">M-Pesa confirmation message</label>
-        <textarea id="mpesaMsg" placeholder="e.g. QGH7X8ABCD Confirmed. Ksh500.00 sent to KUWESA MULEMBE NIGHT on 7/7/26 at 8:14 PM..."></textarea>
-        <p class="hint">We only read the transaction code from this message — never share your M-Pesa PIN with anyone, including via this form.</p>
+        <textarea id="mpesaMsg" placeholder="e.g. QGH7X8ABCD Confirmed. Ksh1,200.00 sent to KUWESA MULEMBE NIGHT on 7/7/26 at 8:14 PM..."></textarea>
+        <p class="hint">We only read the transaction code and amount from this message — never share your M-Pesa PIN with anyone, including via this form.</p>
 
         <button class="btn" id="claimBtn" style="margin-top:20px; width:100%;">Verify Payment &amp; Issue Ticket</button>
         <div class="status-box" id="claimStatus"></div>
@@ -334,7 +452,8 @@
           <div class="ticket-stub" id="ticketStub">
             <div class="top">
               <p class="eyebrow">KUWESA · Admit One</p>
-              <h3>MULEMBE NIGHT</h3>
+              <h3 class="gold-text">MULEMBE NIGHT</h3>
+              <span class="stub-tier" id="stubTier">TIER</span>
             </div>
             <div class="perforation"></div>
             <div class="qr-area">
@@ -357,7 +476,7 @@
 
 <section id="gate">
   <div class="wrap">
-    <div class="section-head">
+    <div class="section-head center">
       <p class="eyebrow">Staff only</p>
       <h2>Gate scanner</h2>
     </div>
@@ -380,10 +499,41 @@
   </div>
 </section>
 
+<section id="faq">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">Good to know</p>
+      <h2>FAQ</h2>
+    </div>
+    <details class="faq-item" open>
+      <summary>Can I transfer my ticket to someone else?</summary>
+      <p>Yes — just download the QR and share the image file with them. Whoever presents a valid, unscanned QR first is admitted, so treat it like cash until it's scanned.</p>
+    </details>
+    <details class="faq-item">
+      <summary>What happens if I lose my QR code?</summary>
+      <p>Contact KUWESA support with your name, phone number and M-Pesa code — your ticket status can be looked up in the system and reissued if it hasn't been scanned yet.</p>
+    </details>
+    <details class="faq-item">
+      <summary>Why does the amount I paid matter?</summary>
+      <p>Each tier has a fixed price. Matching the paid amount to the tier stops mismatched or short payments from being upgraded into a higher tier by mistake.</p>
+    </details>
+    <details class="faq-item">
+      <summary>Is my M-Pesa code shared with anyone else?</summary>
+      <p>No. It's stored only to guarantee a single ticket per payment and is never displayed publicly or reused.</p>
+    </details>
+  </div>
+</section>
+
 <footer>
   <div class="wrap">
+    <div class="socials">
+      <a href="#">Instagram</a>
+      <a href="#">X / Twitter</a>
+      <a href="#">TikTok</a>
+      <a href="#">WhatsApp Channel</a>
+    </div>
     <p>Mulembe Night · Kenyatta University Western Students Association (KUWESA)</p>
-    <p class="mono">Tickets are secured with signed, single-use QR codes verified against Firestore in real time.</p>
+    <p class="mono">Tickets secured with signed, single-use QR codes verified against Firestore in real time.</p>
   </div>
 </footer>
 
@@ -391,74 +541,47 @@
 /* =========================================================================
    MULEMBE NIGHT — TICKETING LOGIC
    =========================================================================
-   HOW THE SECURITY MODEL WORKS
+   SECURITY MODEL (unchanged from the previous build, plus one new guardrail)
    -----------------------------------------------------------------------
-   1. PAYMENT DEDUPLICATION
-      The M-Pesa transaction code is used as the Firestore DOCUMENT ID for
-      a record in the `payments` collection. Firestore document IDs are
-      unique by construction, so the same M-Pesa code can never be used
-      to claim two tickets — the second attempt fails at the database
-      level, not just in application logic.
+   1. PAYMENT DEDUPLICATION — the M-Pesa code is the Firestore document ID
+      in `payments`, so it can never claim two tickets (unique by construction).
+   2. AMOUNT-MATCHES-TIER GUARDRAIL (new) — the amount is parsed out of the
+      M-Pesa SMS and compared to the selected tier's price. A mismatch is
+      rejected before any write happens, so a Regular-priced payment can't
+      be used to claim a VVIP ticket.
+   3. ATOMIC ISSUANCE — payment claim + ticket creation happen in one
+      Firestore transaction.
+   4. TICKET SIGNING — demo uses SHA-256(ticket_id + event_id + TICKET_SALT)
+      client-side so the whole thing fits in one HTML file.
+      >>> NOT PRODUCTION-SAFE <<< — TICKET_SALT is visible in page source.
+      Move issuance + signing into a Cloud Function with a server-side
+      secret (HMAC-SHA256 or Ed25519) before going live. Every spot that
+      needs to move server-side is marked "SERVER-SIDE IN PRODUCTION".
+   5. ATOMIC, RACE-SAFE SCANNING — the gate scan reads + writes ticket
+      status inside one transaction, so simultaneous scans can't both win.
 
-   2. ATOMIC TICKET ISSUANCE
-      Claiming a payment + creating the ticket happens inside a single
-      Firestore transaction (runTransaction). Either both writes succeed
-      or neither does — there is no window where a code is "half claimed".
+   FIRESTORE SECURITY RULES (set in the Firebase console):
 
-   3. TICKET INTEGRITY (SIGNING)
-      Each ticket_id is paired with a signature so the gate scanner can
-      detect a QR that was hand-crafted/edited rather than issued by this
-      system. This demo computes that signature CLIENT-SIDE using
-      SHA-256(ticket_id + event_id + TICKET_SALT) purely so the whole
-      project fits in one HTML file with no server.
-
-      >>> THIS IS NOT PRODUCTION-SAFE SIGNING. <<<
-      Anyone who views this page's source can read TICKET_SALT and forge
-      a "validly signed" ticket_id that was never issued or paid for.
-      For a real deployment, move ticket issuance AND signing into a
-      Firebase Cloud Function using a server-side secret (HMAC-SHA256 or
-      Ed25519), and only ever write `status` from that same trusted
-      backend — never directly from client code. This file marks every
-      spot that needs to move server-side with a "SERVER-SIDE IN
-      PRODUCTION" comment.
-
-   4. ATOMIC, RACE-SAFE SCANNING
-      The gate scan reads the ticket doc, checks its status, and writes
-      the new status inside one Firestore transaction. If two devices
-      scan the same QR at the same instant, Firestore's optimistic-
-      concurrency retry guarantees only one transaction commits as
-      UNUSED -> SCANNED; the other is retried, sees SCANNED, and is
-      correctly rejected.
-
-   5. FIRESTORE SECURITY RULES (set these in the Firebase console —
-      not something this HTML file can enforce on its own):
-
-        rules_version = '2';
-        service cloud.firestore {
-          match /databases/{database}/documents {
-            match /payments/{code} {
-              allow read: if false;                 // never expose codes
-              allow create: if request.auth != null; // via app/functions only
-              allow update, delete: if false;        // payments are immutable
-            }
-            match /tickets/{ticketId} {
-              allow read: if request.auth != null
-                          && resource.data.user_id == request.auth.uid;
-              allow create: if request.auth != null;
-              allow update: if request.auth != null
-                            && request.auth.token.role == "staff"; // gate staff only
-              allow delete: if false;
-            }
-          }
-        }
-
-      In production, swap the anonymous auth below for real staff accounts
-      with a custom "role: staff" claim, so random visitors can never call
-      the scan/update path even if they read this client code.
+     rules_version = '2';
+     service cloud.firestore {
+       match /databases/{database}/documents {
+         match /payments/{code} {
+           allow read: if false;
+           allow create: if request.auth != null;
+           allow update, delete: if false;
+         }
+         match /tickets/{ticketId} {
+           allow read: if request.auth != null && resource.data.user_id == request.auth.uid;
+           allow create: if request.auth != null;
+           allow update: if request.auth != null && request.auth.token.role == "staff";
+           allow delete: if false;
+         }
+       }
+     }
    ========================================================================= */
 
   // -----------------------------------------------------------------------
-  // 0. CONFIG — fill these in before deploying
+  // 0. CONFIG
   // -----------------------------------------------------------------------
   const firebaseConfig = {
     apiKey: "YOUR_API_KEY",
@@ -470,76 +593,131 @@
   };
 
   const EVENT_ID = "mulembe-night-2026";
-  // Demo-only integrity salt — see security note above. Move this server-side.
-  const TICKET_SALT = "REPLACE_WITH_A_LONG_RANDOM_STRING";
+  const TICKET_SALT = "REPLACE_WITH_A_LONG_RANDOM_STRING"; // move server-side in production
+
+  // Set this to an ISO date string once confirmed, e.g. "2026-09-12T19:00:00+03:00"
+  // — the hero will automatically switch from "date dropping soon" to a live countdown.
+  const EVENT_DATE = null;
+
+  const TIERS = [
+    { id: "regular", name: "Regular", price: 500, perks: ["General admission", "Access to main arena", "Standard entry queue"] },
+    { id: "vip", name: "VIP", price: 1200, perks: ["Fast-track entry", "VIP lounge access", "Dedicated bar"], featured: true },
+    { id: "vvip", name: "VVIP", price: 2500, perks: ["Front-of-stage access", "Private lounge & seating", "Complimentary drink", "Meet & greet pass"] }
+  ];
 
   const isConfigured = firebaseConfig.apiKey !== "YOUR_API_KEY";
-  if (!isConfigured) {
-    document.getElementById('configBanner').classList.add('show');
-  }
+  if (!isConfigured) document.getElementById('configBanner').classList.add('show');
 
   let db = null;
   if (isConfigured) {
     firebase.initializeApp(firebaseConfig);
     db = firebase.firestore();
-    // Anonymous auth so Firestore rules can require request.auth != null.
-    // Replace with real staff sign-in for the gate-scanning role in production.
     firebase.auth().signInAnonymously().catch(err => console.error("Auth error:", err));
+  }
+
+  // -----------------------------------------------------------------------
+  // Render tiers
+  // -----------------------------------------------------------------------
+  const tierGrid = document.getElementById('tierGrid');
+  const tierSelect = document.getElementById('tierSelect');
+  TIERS.forEach(t => {
+    tierGrid.insertAdjacentHTML('beforeend', `
+      <div class="tier-card ${t.featured ? 'featured' : ''}">
+        ${t.featured ? '<span class="tier-ribbon">Most Popular</span>' : ''}
+        <h3>${t.name}</h3>
+        <div class="tier-price">Ksh ${t.price.toLocaleString()} <small>/ ticket</small></div>
+        <ul class="tier-perks">${t.perks.map(p => `<li>${p}</li>`).join('')}</ul>
+        <button class="btn ${t.featured ? '' : 'ghost'} select-tier" data-tier="${t.id}">Select ${t.name}</button>
+      </div>
+    `);
+    tierSelect.insertAdjacentHTML('beforeend', `<option value="${t.id}">${t.name} — Ksh ${t.price.toLocaleString()}</option>`);
+  });
+
+  function updateExpectedAmount() {
+    const tier = TIERS.find(t => t.id === tierSelect.value);
+    document.getElementById('expectedAmount').textContent = `Ksh ${tier.price.toLocaleString()}`;
+  }
+  tierSelect.addEventListener('change', updateExpectedAmount);
+  updateExpectedAmount();
+
+  document.querySelectorAll('.select-tier').forEach(btn => {
+    btn.addEventListener('click', () => {
+      tierSelect.value = btn.dataset.tier;
+      updateExpectedAmount();
+      document.getElementById('tickets').scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // Countdown / "date dropping soon"
+  // -----------------------------------------------------------------------
+  if (EVENT_DATE) {
+    document.getElementById('soonBadge').style.display = 'none';
+    const cd = document.getElementById('countdown');
+    cd.style.display = 'flex';
+    const target = new Date(EVENT_DATE).getTime();
+    setInterval(() => {
+      const diff = Math.max(0, target - Date.now());
+      const d = Math.floor(diff / 86400000);
+      const h = Math.floor((diff % 86400000) / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      document.getElementById('cdDays').textContent = String(d).padStart(2, '0');
+      document.getElementById('cdHours').textContent = String(h).padStart(2, '0');
+      document.getElementById('cdMins').textContent = String(m).padStart(2, '0');
+      document.getElementById('cdSecs').textContent = String(s).padStart(2, '0');
+    }, 1000);
   }
 
   // -----------------------------------------------------------------------
   // Helpers
   // -----------------------------------------------------------------------
   function extractMpesaCode(message) {
-    // M-Pesa codes are typically 10 uppercase alphanumeric characters,
-    // usually the first token in the confirmation SMS.
     const match = message.trim().match(/\b[A-Z0-9]{10}\b/);
     return match ? match[0] : null;
   }
-
+  function extractAmount(message) {
+    const match = message.match(/Ksh\s?([\d,]+(?:\.\d{1,2})?)/i);
+    return match ? parseFloat(match[1].replace(/,/g, '')) : null;
+  }
   async function sha256Hex(text) {
     const enc = new TextEncoder().encode(text);
     const digest = await crypto.subtle.digest("SHA-256", enc);
     return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, "0")).join("");
   }
-
   function setStatus(el, kind, msg) {
     el.className = "status-box show " + kind;
     el.textContent = msg;
   }
-
   function uuid() {
     return crypto.randomUUID ? crypto.randomUUID() : ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
       (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
   }
 
   // -----------------------------------------------------------------------
-  // 1. CLAIM PAYMENT + ISSUE TICKET
-  //    SERVER-SIDE IN PRODUCTION: this whole function should be a callable
-  //    Cloud Function so the signing salt and payment-writing logic are
-  //    never exposed to the browser.
+  // 1. CLAIM PAYMENT + ISSUE TICKET — SERVER-SIDE IN PRODUCTION
   // -----------------------------------------------------------------------
   document.getElementById('claimBtn').addEventListener('click', async () => {
     const statusEl = document.getElementById('claimStatus');
     const name = document.getElementById('fullName').value.trim();
     const phone = document.getElementById('phone').value.trim();
     const rawMsg = document.getElementById('mpesaMsg').value;
+    const tier = TIERS.find(t => t.id === tierSelect.value);
 
-    if (!isConfigured) {
-      setStatus(statusEl, 'err', 'Firebase is not configured yet — see the banner above.');
-      return;
-    }
-    if (!name || !phone) {
-      setStatus(statusEl, 'err', 'Please add your full name and phone number.');
-      return;
-    }
+    if (!isConfigured) { setStatus(statusEl, 'err', 'Firebase is not configured yet — see the banner above.'); return; }
+    if (!name || !phone) { setStatus(statusEl, 'err', 'Please add your full name and phone number.'); return; }
+
     const mpesaCode = extractMpesaCode(rawMsg);
-    if (!mpesaCode) {
-      setStatus(statusEl, 'err', "Couldn't find a valid M-Pesa code in that message. Paste it exactly as received.");
+    if (!mpesaCode) { setStatus(statusEl, 'err', "Couldn't find a valid M-Pesa code in that message. Paste it exactly as received."); return; }
+
+    const paidAmount = extractAmount(rawMsg);
+    if (paidAmount === null) { setStatus(statusEl, 'err', "Couldn't find the paid amount in that message."); return; }
+    if (paidAmount !== tier.price) {
+      setStatus(statusEl, 'err', `Amount mismatch: this message shows Ksh ${paidAmount.toLocaleString()}, but ${tier.name} costs Ksh ${tier.price.toLocaleString()}. Select the matching tier or contact support.`);
       return;
     }
 
-    setStatus(statusEl, 'pending', 'Verifying payment code and issuing your ticket…');
+    setStatus(statusEl, 'pending', 'Verifying payment and issuing your ticket…');
     document.getElementById('claimBtn').disabled = true;
 
     try {
@@ -549,41 +727,31 @@
 
       await db.runTransaction(async (tx) => {
         const paymentDoc = await tx.get(paymentRef);
-        if (paymentDoc.exists) {
-          throw new Error('DUPLICATE_PAYMENT');
-        }
+        if (paymentDoc.exists) throw new Error('DUPLICATE_PAYMENT');
 
         tx.set(paymentRef, {
-          used: true,
-          full_name: name,
-          phone: phone,
-          event_id: EVENT_ID,
-          ticket_id: ticketId,
+          used: true, full_name: name, phone, event_id: EVENT_ID, ticket_id: ticketId,
+          tier: tier.id, amount: paidAmount,
           verified_at: firebase.firestore.FieldValue.serverTimestamp(),
-          raw_message_excerpt: rawMsg.slice(0, 200) // stored for dispute resolution only
+          raw_message_excerpt: rawMsg.slice(0, 200)
         });
 
         tx.set(ticketRef, {
-          full_name: name,
-          phone: phone,
-          event_id: EVENT_ID,
-          payment_id: mpesaCode,
-          status: 'UNUSED',
+          full_name: name, phone, event_id: EVENT_ID, payment_id: mpesaCode,
+          tier: tier.id, status: 'UNUSED',
           created_at: firebase.firestore.FieldValue.serverTimestamp(),
-          scanned_at: null,
-          scanned_by: null
+          scanned_at: null, scanned_by: null
         });
       });
 
-      // Demo signature — SERVER-SIDE IN PRODUCTION (see security note above)
-      const sig = await sha256Hex(ticketId + EVENT_ID + TICKET_SALT);
+      const sig = await sha256Hex(ticketId + EVENT_ID + TICKET_SALT); // SERVER-SIDE IN PRODUCTION
       const payload = JSON.stringify({ ticket_id: ticketId, event_id: EVENT_ID, sig });
 
-      renderTicket(payload, ticketId, name);
+      renderTicket(payload, ticketId, name, tier);
       setStatus(statusEl, 'ok', '✓ Payment verified. Your ticket is ready below — save the QR code.');
     } catch (err) {
       if (err.message === 'DUPLICATE_PAYMENT') {
-        setStatus(statusEl, 'err', 'This M-Pesa code has already been used to claim a ticket. Each payment can only issue one ticket.');
+        setStatus(statusEl, 'err', 'This M-Pesa code has already been used to claim a ticket.');
       } else {
         console.error(err);
         setStatus(statusEl, 'err', 'Something went wrong issuing your ticket. Please try again.');
@@ -593,13 +761,14 @@
     }
   });
 
-  function renderTicket(payload, ticketId, name) {
+  function renderTicket(payload, ticketId, name, tier) {
     const stub = document.getElementById('ticketStub');
     const canvas = document.getElementById('qrCanvas');
-    QRCode.toCanvas(canvas, payload, { width: 200, margin: 1, color: { dark: '#06211f', light: '#ffffff' } });
+    QRCode.toCanvas(canvas, payload, { width: 200, margin: 1, color: { dark: '#0c0906', light: '#ffffff' } });
     document.getElementById('ticketIdText').textContent = ticketId;
     document.getElementById('holderName').textContent = name;
     document.getElementById('ticketStatusLabel').textContent = 'UNUSED';
+    document.getElementById('stubTier').textContent = tier.name;
     stub.classList.add('show');
     document.getElementById('stubActions').style.display = 'flex';
 
@@ -612,43 +781,22 @@
   }
 
   // -----------------------------------------------------------------------
-  // 2. GATE SCANNING
-  //    SERVER-SIDE IN PRODUCTION: restrict this to authenticated staff
-  //    accounts via Firestore rules (see rules block above), and verify
-  //    `sig` against a server-held secret rather than the exposed salt.
+  // 2. GATE SCANNING — restrict to staff accounts via rules in production
   // -----------------------------------------------------------------------
   async function processScan(payloadText) {
     const resultEl = document.getElementById('scanResult');
     const staffId = document.getElementById('staffId').value.trim() || 'unspecified-staff';
 
     let payload;
-    try {
-      payload = JSON.parse(payloadText);
-    } catch {
-      resultEl.className = 'scan-result show err';
-      resultEl.textContent = '✕ Unreadable QR payload.';
-      return;
-    }
+    try { payload = JSON.parse(payloadText); }
+    catch { resultEl.className = 'scan-result show err'; resultEl.textContent = '✕ Unreadable QR payload.'; return; }
 
     const { ticket_id, event_id, sig } = payload;
-    if (!ticket_id || !sig) {
-      resultEl.className = 'scan-result show err';
-      resultEl.textContent = '✕ Malformed ticket payload.';
-      return;
-    }
+    if (!ticket_id || !sig) { resultEl.className = 'scan-result show err'; resultEl.textContent = '✕ Malformed ticket payload.'; return; }
 
     const expectedSig = await sha256Hex(ticket_id + (event_id || EVENT_ID) + TICKET_SALT);
-    if (sig !== expectedSig) {
-      resultEl.className = 'scan-result show err';
-      resultEl.textContent = '✕ Invalid signature — this QR was not issued by our system.';
-      return;
-    }
-
-    if (!isConfigured) {
-      resultEl.className = 'scan-result show err';
-      resultEl.textContent = 'Firebase is not configured yet.';
-      return;
-    }
+    if (sig !== expectedSig) { resultEl.className = 'scan-result show err'; resultEl.textContent = '✕ Invalid signature — not issued by our system.'; return; }
+    if (!isConfigured) { resultEl.className = 'scan-result show err'; resultEl.textContent = 'Firebase is not configured yet.'; return; }
 
     const ticketRef = db.collection('tickets').doc(ticket_id);
     try {
@@ -656,20 +804,13 @@
         const doc = await tx.get(ticketRef);
         if (!doc.exists) throw new Error('NOT_FOUND');
         const t = doc.data();
-
         if (t.status === 'SCANNED') throw new Error('ALREADY_SCANNED');
         if (t.status === 'EXPIRED') throw new Error('EXPIRED');
-
-        tx.update(ticketRef, {
-          status: 'SCANNED',
-          scanned_at: firebase.firestore.FieldValue.serverTimestamp(),
-          scanned_by: staffId
-        });
-        return t.full_name;
+        tx.update(ticketRef, { status: 'SCANNED', scanned_at: firebase.firestore.FieldValue.serverTimestamp(), scanned_by: staffId });
+        return { name: t.full_name, tier: t.tier };
       });
-
       resultEl.className = 'scan-result show ok';
-      resultEl.textContent = `✓ Entry granted — welcome, ${outcome}.`;
+      resultEl.textContent = `✓ Entry granted — welcome, ${outcome.name} (${outcome.tier}).`;
     } catch (err) {
       resultEl.className = 'scan-result show err';
       if (err.message === 'ALREADY_SCANNED') resultEl.textContent = '✕ This ticket has already been used.';
@@ -686,23 +827,17 @@
   let html5QrCode;
   document.getElementById('startScan').addEventListener('click', async () => {
     const btn = document.getElementById('startScan');
-    if (html5QrCode && html5QrCode._isScanning) {
-      await html5QrCode.stop();
-      btn.textContent = 'Start Camera Scan';
-      return;
-    }
+    if (html5QrCode && html5QrCode._isScanning) { await html5QrCode.stop(); btn.textContent = 'Start Camera Scan'; return; }
     html5QrCode = new Html5Qrcode("reader");
     btn.textContent = 'Stop Camera Scan';
     try {
       await html5QrCode.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: 220 },
+        { facingMode: "environment" }, { fps: 10, qrbox: 220 },
         async (decodedText) => {
           await html5QrCode.pause();
           await processScan(decodedText);
           setTimeout(() => html5QrCode.resume && html5QrCode.resume(), 2500);
-        },
-        () => {}
+        }, () => {}
       );
     } catch (err) {
       console.error(err);
