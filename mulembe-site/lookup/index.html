@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Find My Ticket — Mulembe Night</title>
+<meta name="description" content="Look up a lost Mulembe Night ticket using your phone number and M-Pesa code.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/style.css">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="../assets/app.js"></script>
+</head>
+<body>
+
+<nav>
+  <div class="wrap row">
+    <a class="brand" href="../index.html">
+      <img src="../mulembe-logo.png" alt="KUWESA logo">
+      <span>MULEMBE NIGHT</span>
+    </a>
+    <div class="links">
+      <a href="../index.html#events">Events</a>
+      <a href="../tickets/">Get Tickets</a>
+      <a href="../gate/">Gate Scanner</a>
+      <a href="../admin/">Staff / Admin</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="wrap">
+    <a class="back-link" href="../index.html">← Back to Mulembe Night</a>
+    <p class="eyebrow">Lost your QR?</p>
+    <h1 class="gold-text">Find My Ticket</h1>
+    <p>Enter the phone number and the M-Pesa transaction code you paid with — both are required so no one else can pull up your ticket.</p>
+  </div>
+</div>
+
+<section style="border-top:none;">
+  <div class="wrap">
+    <div id="configBanner" class="config-banner">
+      ⚠ Firebase is not configured yet. Fill in <code class="inline">firebaseConfig</code> and <code class="inline">TICKET_SALT</code> in <code class="inline">assets/app.js</code>.
+    </div>
+
+    <div class="card lookup-card">
+      <h3>Look up by phone &amp; M-Pesa code</h3>
+      <p class="sub">Both fields are required so no one else can pull up your ticket.</p>
+
+      <label for="lookupPhone">Phone number used to pay</label>
+      <input type="tel" id="lookupPhone" placeholder="07XX XXX XXX">
+
+      <label for="lookupCode">M-Pesa transaction code</label>
+      <input type="text" id="lookupCode" placeholder="e.g. QGH7X8ABCD" class="mono">
+
+      <button class="btn" id="lookupBtn" style="margin-top:20px; width:100%;">Find My Ticket</button>
+      <div class="status-box" id="lookupStatus"></div>
+
+      <div class="lookup-result stub-wrap" id="lookupResultWrap" style="display:none;">
+        <div>
+          <div class="ticket-stub show" id="lookupStub">
+            <div class="top">
+              <p class="eyebrow">KUWESA · Admit One</p>
+              <h3 class="gold-text" id="lookupEventName">MULEMBE NIGHT</h3>
+              <span class="stub-tier" id="lookupTier">TIER</span>
+            </div>
+            <div class="perforation"></div>
+            <div class="qr-area">
+              <canvas id="lookupQrCanvas" width="200" height="200"></canvas>
+              <p class="tid" id="lookupTicketIdText"></p>
+            </div>
+            <div class="meta-row">
+              <div>Holder<b id="lookupHolderName">—</b></div>
+              <div style="text-align:right;">Status<b id="lookupStatusLabel">UNUSED</b></div>
+            </div>
+          </div>
+          <div class="stub-actions">
+            <button class="btn ghost" id="lookupDownload">Download QR</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>Mulembe Night · Kenyatta University Western Students Association (KUWESA)</p>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('lookupBtn').addEventListener('click', async () => {
+    const statusEl = document.getElementById('lookupStatus');
+    const resultWrap = document.getElementById('lookupResultWrap');
+    resultWrap.style.display = 'none';
+
+    const phone = document.getElementById('lookupPhone').value.trim();
+    const codeRaw = document.getElementById('lookupCode').value.trim();
+    if (!isConfigured) { setStatus(statusEl, 'err', 'Firebase is not configured yet.'); return; }
+    if (!phone || !codeRaw) { setStatus(statusEl, 'err', 'Enter both your phone number and M-Pesa code.'); return; }
+    const code = codeRaw.toUpperCase();
+
+    setStatus(statusEl, 'pending', 'Looking up your ticket…');
+    try {
+      const paymentDoc = await db.collection('payments').doc(code).get();
+      if (!paymentDoc.exists) { setStatus(statusEl, 'err', 'No payment found for that M-Pesa code.'); return; }
+      const payment = paymentDoc.data();
+      if (normalizePhone(payment.phone) !== normalizePhone(phone)) {
+        setStatus(statusEl, 'err', "That code doesn't match the phone number provided.");
+        return;
+      }
+      const ticketDoc = await db.collection('tickets').doc(payment.ticket_id).get();
+      if (!ticketDoc.exists) { setStatus(statusEl, 'err', 'Ticket record not found — contact KUWESA support.'); return; }
+      const ticket = ticketDoc.data();
+
+      let ev = eventById(ticket.event_id);
+      if (!ev) {
+        const evDoc = await db.collection('events').doc(ticket.event_id).get();
+        ev = evDoc.exists ? { id: evDoc.id, ...evDoc.data() } : null;
+      }
+      if (!ev) { setStatus(statusEl, 'err', 'Could not load the event for this ticket.'); return; }
+      const tier = (ev.tiers || []).find(t => t.id === ticket.tier) || { name: ticket.tier, price: 0 };
+
+      const sig = await sha256Hex(payment.ticket_id + ev.id + TICKET_SALT);
+      const payload = JSON.stringify({ ticket_id: payment.ticket_id, event_id: ev.id, sig });
+
+      const canvas = document.getElementById('lookupQrCanvas');
+      QRCode.toCanvas(canvas, payload, { width: 200, margin: 1, color: { dark: '#0c0906', light: '#ffffff' } });
+      document.getElementById('lookupTicketIdText').textContent = payment.ticket_id;
+      document.getElementById('lookupHolderName').textContent = ticket.full_name;
+      document.getElementById('lookupStatusLabel').textContent = ticket.status;
+      document.getElementById('lookupTier').textContent = tier.name;
+      document.getElementById('lookupEventName').textContent = ev.eventName;
+      resultWrap.style.display = 'flex';
+
+      document.getElementById('lookupDownload').onclick = () => {
+        const link = document.createElement('a');
+        link.download = `${ev.eventName.replace(/\s+/g,'-').toLowerCase()}-ticket-${payment.ticket_id}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      };
+
+      setStatus(statusEl, 'ok', ticket.status === 'SCANNED' ? 'Found it — note this ticket has already been scanned/used.' : '✓ Ticket found. Save the QR below.');
+    } catch (err) {
+      console.error(err);
+      setStatus(statusEl, 'err', 'Something went wrong during lookup. Please try again.');
+    }
+  });
+
+  showConfigBannerIfNeeded();
+  loadEventsData();
+</script>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gate Scanner — Mulembe Night</title>
+<meta name="description" content="Staff gate scanner for Mulembe Night tickets.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/style.css">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="../assets/app.js"></script>
+</head>
+<body>
+
+<nav>
+  <div class="wrap row">
+    <a class="brand" href="../index.html">
+      <img src="../mulembe-logo.png" alt="KUWESA logo">
+      <span>MULEMBE NIGHT</span>
+    </a>
+    <div class="links">
+      <a href="../index.html">Public site</a>
+      <a href="../admin/">Staff / Admin</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="wrap">
+    <a class="back-link" href="../index.html">← Back to Mulembe Night</a>
+    <p class="eyebrow">Staff only</p>
+    <h1 class="gold-text">Gate Scanner</h1>
+    <p>Scanning is restricted to signed-in staff or admin accounts.</p>
+  </div>
+</div>
+
+<section style="border-top:none;">
+  <div class="wrap">
+    <div id="configBanner" class="config-banner">
+      ⚠ Firebase is not configured yet. Fill in <code class="inline">firebaseConfig</code> and <code class="inline">TICKET_SALT</code> in <code class="inline">assets/app.js</code>.
+    </div>
+
+    <div class="role-bar" id="roleBar">
+      <span class="who mono" id="roleWho">Not signed in</span>
+      <span>
+        <span class="role-badge none" id="roleBadge">no access</span>
+        <button class="btn small ghost" id="signOutBtn" style="display:none; margin-left:8px;">Sign out</button>
+      </span>
+    </div>
+
+    <div class="card gate-card" id="gateAuthGate">
+      <h3>Sign in required</h3>
+      <p class="sub">Scanning is restricted to signed-in staff or admin accounts. Sign in on the Staff / Admin page — once signed in there, this page will unlock automatically.</p>
+      <a href="../admin/" class="btn ghost">Go to Staff / Admin sign-in</a>
+    </div>
+
+    <div class="card gate-card" id="gateScannerCard" style="display:none;">
+      <h3>Scan a ticket</h3>
+      <p class="sub">Each ticket can be scanned exactly once — the check happens atomically so two scanners can never both admit the same QR. Every scan is logged to the admin dashboard.</p>
+
+      <label for="gateEventSelect">Checking in for event</label>
+      <select id="gateEventSelect"></select>
+
+      <button class="btn ghost" id="startScan" style="margin-top:16px;">Start Camera Scan</button>
+      <div id="reader"></div>
+
+      <label for="manualTicket" style="margin-top:20px;">Or enter ticket payload manually</label>
+      <textarea id="manualTicket" placeholder="Paste scanned QR JSON payload here"></textarea>
+      <button class="btn" id="manualScanBtn" style="margin-top:10px; width:100%;">Check Ticket</button>
+
+      <div class="scan-result" id="scanResult"></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>Mulembe Night · Kenyatta University Western Students Association (KUWESA)</p>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('signOutBtn').addEventListener('click', async () => {
+    await firebase.auth().signOut();
+    currentRole = 'none';
+    onAuthReady();
+  });
+
+  function onAuthReady() {
+    renderRoleBar();
+    const authed = currentUser && !currentUser.isAnonymous && (currentRole === 'staff' || currentRole === 'admin');
+    document.getElementById('gateAuthGate').style.display = authed ? 'none' : 'block';
+    document.getElementById('gateScannerCard').style.display = authed ? 'block' : 'none';
+  }
+
+  async function renderGateEventSelect() {
+    await loadEventsData();
+    const live = liveEvents();
+    const el = document.getElementById('gateEventSelect');
+    el.innerHTML = live.map(e => `<option value="${e.id}">${escapeHtml(e.eventName)} — ${fmtDate(e.eventDate)}</option>`).join('')
+      || '<option value="">No live events</option>';
+  }
+
+  async function logScan(ticketId, status, notes) {
+    try {
+      await db.collection('scanHistory').add({
+        ticket_id: ticketId || null,
+        status,
+        notes: notes || null,
+        staff_uid: currentUser ? currentUser.uid : null,
+        staff_email: currentUser ? currentUser.email : null,
+        scanned_at: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    } catch (e) {
+      console.error('Failed to log scan:', e);
+    }
+  }
+
+  async function processScan(payloadText) {
+    const resultEl = document.getElementById('scanResult');
+
+    let payload;
+    try { payload = JSON.parse(payloadText); }
+    catch { resultEl.className = 'scan-result show err'; resultEl.textContent = '✕ Unreadable QR payload.'; return; }
+
+    const { ticket_id, event_id, sig } = payload;
+    if (!ticket_id || !sig) { resultEl.className = 'scan-result show err'; resultEl.textContent = '✕ Malformed ticket payload.'; await logScan(ticket_id, 'not_found', 'Malformed payload'); return; }
+
+    const expectedSig = await sha256Hex(ticket_id + (event_id || '') + TICKET_SALT);
+    if (sig !== expectedSig) {
+      resultEl.className = 'scan-result show err'; resultEl.textContent = '✕ Invalid signature — not issued by our system.';
+      await logScan(ticket_id, 'not_found', 'Signature mismatch');
+      return;
+    }
+    if (!isConfigured) { resultEl.className = 'scan-result show err'; resultEl.textContent = 'Firebase is not configured yet.'; return; }
+
+    const ticketRef = db.collection('tickets').doc(ticket_id);
+    try {
+      const outcome = await db.runTransaction(async (tx) => {
+        const doc = await tx.get(ticketRef);
+        if (!doc.exists) throw new Error('NOT_FOUND');
+        const t = doc.data();
+        if (t.status === 'SCANNED') throw new Error('ALREADY_SCANNED');
+        if (t.status === 'EXPIRED') throw new Error('EXPIRED');
+        tx.update(ticketRef, {
+          status: 'SCANNED',
+          scanned_at: firebase.firestore.FieldValue.serverTimestamp(),
+          scanned_by: currentUser ? currentUser.uid : null
+        });
+        return { name: t.full_name, tier: t.tier };
+      });
+      resultEl.className = 'scan-result show ok';
+      resultEl.textContent = `✓ Entry granted — welcome, ${outcome.name} (${outcome.tier}).`;
+      await logScan(ticket_id, 'success', `Admitted ${outcome.name}`);
+    } catch (err) {
+      resultEl.className = 'scan-result show err';
+      if (err.message === 'ALREADY_SCANNED') { resultEl.textContent = '✕ This ticket has already been used.'; await logScan(ticket_id, 'already_scanned'); }
+      else if (err.message === 'EXPIRED') { resultEl.textContent = '✕ This ticket has expired.'; await logScan(ticket_id, 'expired'); }
+      else if (err.message === 'NOT_FOUND') { resultEl.textContent = '✕ Ticket not found.'; await logScan(ticket_id, 'not_found'); }
+      else { console.error(err); resultEl.textContent = '✕ Could not process scan. Try again.'; }
+    }
+  }
+
+  document.getElementById('manualScanBtn').addEventListener('click', () => {
+    processScan(document.getElementById('manualTicket').value.trim());
+  });
+
+  let html5QrCode;
+  document.getElementById('startScan').addEventListener('click', async () => {
+    const btn = document.getElementById('startScan');
+    if (html5QrCode && html5QrCode._isScanning) { await html5QrCode.stop(); btn.textContent = 'Start Camera Scan'; return; }
+    html5QrCode = new Html5Qrcode("reader");
+    btn.textContent = 'Stop Camera Scan';
+    try {
+      await html5QrCode.start(
+        { facingMode: "environment" }, { fps: 10, qrbox: 220 },
+        async (decodedText) => {
+          await html5QrCode.pause();
+          await processScan(decodedText);
+          setTimeout(() => html5QrCode.resume && html5QrCode.resume(), 2500);
+        }, () => {}
+      );
+    } catch (err) {
+      console.error(err);
+      document.getElementById('scanResult').className = 'scan-result show err';
+      document.getElementById('scanResult').textContent = 'Camera unavailable — use manual entry below.';
+      btn.textContent = 'Start Camera Scan';
+    }
+  });
+
+  showConfigBannerIfNeeded();
+  renderGateEventSelect();
+  initAuthBootstrap(onAuthReady);
+</script>
+</body>
+</html>
