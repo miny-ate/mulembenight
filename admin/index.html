@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Staff &amp; Admin — Mulembe Night</title>
+<meta name="description" content="Staff and admin dashboard for Mulembe Night ticketing.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/style.css">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="../assets/app.js"></script>
+</head>
+<body>
+
+<nav>
+  <div class="wrap row">
+    <a class="brand" href="../index.html">
+      <img src="../mulembe-logo.png" alt="KUWESA logo">
+      <span>MULEMBE NIGHT</span>
+    </a>
+    <div class="links">
+      <a href="../index.html">Public site</a>
+      <a href="../gate/">Gate Scanner</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="wrap">
+    <a class="back-link" href="../index.html">← Back to Mulembe Night</a>
+    <p class="eyebrow">Behind the counter</p>
+    <h1 class="gold-text">Staff &amp; Admin</h1>
+    <p>Create events, review tickets, and audit every gate scan.</p>
+  </div>
+</div>
+
+<section style="border-top:none;">
+  <div class="wrap">
+    <div id="configBanner" class="config-banner">
+      ⚠ Firebase is not configured yet. Fill in <code class="inline">firebaseConfig</code> and <code class="inline">TICKET_SALT</code> in <code class="inline">assets/app.js</code>.
+    </div>
+
+    <div class="role-bar" id="roleBar">
+      <span class="who mono" id="roleWho">Not signed in</span>
+      <span>
+        <span class="role-badge none" id="roleBadge">no access</span>
+        <button class="btn small ghost" id="signOutBtn" style="display:none; margin-left:8px;">Sign out</button>
+      </span>
+    </div>
+
+    <!-- Sign in / sign up card -->
+    <div class="card" id="authCard" style="max-width:560px; margin:0 auto;">
+      <h3>Staff / admin sign-in</h3>
+      <p class="sub">Accounts are created here, but a role (staff or admin) must be granted by an existing admin in the Firebase console before you get access. See the comments in <code class="inline">assets/app.js</code> for the exact steps.</p>
+      <div class="auth-toggle">
+        <button type="button" id="toggleSignIn" class="active">Sign in</button>
+        <button type="button" id="toggleSignUp">Create account</button>
+      </div>
+      <label for="authEmail">Email</label>
+      <input type="email" id="authEmail" placeholder="you@kuwesa.org" autocomplete="username">
+      <label for="authPassword">Password</label>
+      <input type="password" id="authPassword" placeholder="••••••••" autocomplete="current-password">
+      <button class="btn" id="authSubmitBtn" style="margin-top:18px; width:100%;">Sign In</button>
+      <div class="status-box" id="authStatus"></div>
+    </div>
+
+    <!-- Admin dashboard, hidden unless role === admin -->
+    <div class="card" id="adminDashboard" style="display:none; margin-top:30px;">
+      <h3>Admin dashboard</h3>
+      <p class="sub">Manage events, review tickets, and audit every gate scan.</p>
+
+      <div class="admin-tabs">
+        <button class="admin-tab-btn active" data-pane="paneEvents">Events</button>
+        <button class="admin-tab-btn" data-pane="paneTickets">Tickets</button>
+        <button class="admin-tab-btn" data-pane="paneScans">Scan history</button>
+      </div>
+
+      <!-- EVENTS PANE -->
+      <div class="admin-pane show" id="paneEvents">
+        <h3 style="font-size:16px;">Create / edit an event</h3>
+        <input type="hidden" id="editingEventId" value="">
+        <label for="evName">Event name</label>
+        <input type="text" id="evName" placeholder="Mulembe Night 2026">
+        <label for="evDate">Date &amp; time (leave blank for "date dropping soon")</label>
+        <input type="datetime-local" id="evDate">
+        <label for="evLocation">Location</label>
+        <input type="text" id="evLocation" placeholder="Kinga Resort, Kitui">
+        <label for="evCapacity">Capacity</label>
+        <input type="number" id="evCapacity" min="1" placeholder="1000">
+        <label for="evDescription">Description</label>
+        <textarea id="evDescription" placeholder="Short description shown on the event card"></textarea>
+
+        <label style="margin-top:20px;">Ticket tiers</label>
+        <div id="tierRows"></div>
+        <button class="btn ghost small" id="addTierRow" type="button">+ Add tier</button>
+
+        <label style="margin-top:20px; display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" id="evActive" style="width:auto;" checked> Live / accepting ticket sales
+        </label>
+
+        <div style="display:flex; gap:10px; margin-top:20px;">
+          <button class="btn" id="saveEventBtn" style="flex:1;">Save Event</button>
+          <button class="btn ghost" id="cancelEditBtn" style="display:none;">Cancel edit</button>
+        </div>
+        <div class="status-box" id="eventFormStatus"></div>
+
+        <h3 style="font-size:16px; margin-top:34px;">All events</h3>
+        <div id="adminEventsList"><p class="hint">Loading…</p></div>
+      </div>
+
+      <!-- TICKETS PANE -->
+      <div class="admin-pane" id="paneTickets">
+        <div class="filter-row">
+          <select id="statsEventFilter"></select>
+          <input type="text" id="ticketSearch" placeholder="Search name, phone or ticket id…">
+        </div>
+        <div class="stat-grid" id="statGrid"></div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Holder</th><th>Phone</th><th>Tier</th><th>Status</th><th>Ticket ID</th><th>Created</th></tr></thead>
+            <tbody id="ticketsTableBody"><tr><td colspan="6">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SCAN HISTORY PANE -->
+      <div class="admin-pane" id="paneScans">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Time</th><th>Ticket ID</th><th>Result</th><th>Staff</th><th>Notes</th></tr></thead>
+            <tbody id="scansTableBody"><tr><td colspan="5">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>Mulembe Night · Kenyatta University Western Students Association (KUWESA)</p>
+  </div>
+</footer>
+
+<script>
+  // -----------------------------------------------------------------------
+  // AUTH UI
+  // -----------------------------------------------------------------------
+  let authMode = 'signin';
+  document.getElementById('toggleSignIn').addEventListener('click', () => setAuthMode('signin'));
+  document.getElementById('toggleSignUp').addEventListener('click', () => setAuthMode('signup'));
+  function setAuthMode(mode) {
+    authMode = mode;
+    document.getElementById('toggleSignIn').classList.toggle('active', mode === 'signin');
+    document.getElementById('toggleSignUp').classList.toggle('active', mode === 'signup');
+    document.getElementById('authSubmitBtn').textContent = mode === 'signin' ? 'Sign In' : 'Create Account';
+  }
+
+  document.getElementById('authSubmitBtn').addEventListener('click', async () => {
+    const statusEl = document.getElementById('authStatus');
+    const email = document.getElementById('authEmail').value.trim();
+    const password = document.getElementById('authPassword').value;
+    if (!isConfigured) { setStatus(statusEl, 'err', 'Firebase is not configured yet.'); return; }
+    if (!email || !password) { setStatus(statusEl, 'err', 'Enter an email and password.'); return; }
+
+    setStatus(statusEl, 'pending', authMode === 'signin' ? 'Signing in…' : 'Creating account…');
+    try {
+      if (authMode === 'signin') {
+        await firebase.auth().signInWithEmailAndPassword(email, password);
+        setStatus(statusEl, 'ok', 'Signed in.');
+      } else {
+        const cred = await firebase.auth().createUserWithEmailAndPassword(email, password);
+        setStatus(statusEl, 'ok', `Account created (uid: ${cred.user.uid}). Ask an admin to grant you a role in the Firebase console — see the code comments for how.`);
+      }
+    } catch (err) {
+      console.error(err);
+      setStatus(statusEl, 'err', err.message || 'Authentication failed.');
+    }
+  });
+
+  document.getElementById('signOutBtn').addEventListener('click', async () => {
+    await firebase.auth().signOut();
+    currentRole = 'none';
+    onAuthReady();
+  });
+
+  function onAuthReady() {
+    renderRoleBar();
+    const authCard = document.getElementById('authCard');
+    authCard.style.display = (!currentUser || currentUser.isAnonymous || currentRole === 'none') ? 'block' : 'none';
+    const isAdmin = currentUser && !currentUser.isAnonymous && currentRole === 'admin';
+    document.getElementById('adminDashboard').style.display = isAdmin ? 'block' : 'none';
+    if (isAdmin) loadAdminData();
+  }
+
+  // -----------------------------------------------------------------------
+  // ADMIN TABS
+  // -----------------------------------------------------------------------
+  document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.admin-pane').forEach(p => p.classList.remove('show'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.pane).classList.add('show');
+      if (btn.dataset.pane === 'paneTickets') renderAdminTickets();
+      if (btn.dataset.pane === 'paneScans') renderScanHistory();
+    });
+  });
+
+  // --- Tier row builder for the event form ---
+  function addTierRow(tier) {
+    tier = tier || { id: '', name: '', price: '', perks: [] };
+    const row = document.createElement('div');
+    row.className = 'tier-row';
+    row.innerHTML = `
+      <div><label>Tier name</label><input type="text" class="tr-name" value="${escapeHtml(tier.name)}" placeholder="VIP"></div>
+      <div><label>Price (Ksh)</label><input type="number" class="tr-price" value="${tier.price || ''}" min="0" placeholder="1200"></div>
+      <div><label>Perks (comma separated)</label><input type="text" class="tr-perks" value="${escapeHtml((tier.perks||[]).join(', '))}" placeholder="Fast-track entry, VIP lounge"></div>
+      <div><button type="button" class="btn ghost small remove-tier">Remove</button></div>
+    `;
+    row.querySelector('.remove-tier').addEventListener('click', () => row.remove());
+    document.getElementById('tierRows').appendChild(row);
+  }
+  document.getElementById('addTierRow').addEventListener('click', () => addTierRow());
+
+  function collectTiersFromForm() {
+    return Array.from(document.querySelectorAll('#tierRows .tier-row')).map(row => {
+      const name = row.querySelector('.tr-name').value.trim();
+      const price = parseFloat(row.querySelector('.tr-price').value);
+      const perks = row.querySelector('.tr-perks').value.split(',').map(s => s.trim()).filter(Boolean);
+      const id = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || uuid().slice(0, 8);
+      return { id, name, price: isNaN(price) ? 0 : price, perks };
+    }).filter(t => t.name);
+  }
+
+  function resetEventForm() {
+    document.getElementById('editingEventId').value = '';
+    document.getElementById('evName').value = '';
+    document.getElementById('evDate').value = '';
+    document.getElementById('evLocation').value = '';
+    document.getElementById('evCapacity').value = '';
+    document.getElementById('evDescription').value = '';
+    document.getElementById('evActive').checked = true;
+    document.getElementById('tierRows').innerHTML = '';
+    addTierRow(); addTierRow(); addTierRow();
+    document.getElementById('cancelEditBtn').style.display = 'none';
+    document.getElementById('saveEventBtn').textContent = 'Save Event';
+  }
+  resetEventForm();
+
+  document.getElementById('cancelEditBtn').addEventListener('click', resetEventForm);
+
+  document.getElementById('saveEventBtn').addEventListener('click', async () => {
+    const statusEl = document.getElementById('eventFormStatus');
+    if (!isConfigured) { setStatus(statusEl, 'err', 'Firebase is not configured yet.'); return; }
+    if (currentRole !== 'admin') { setStatus(statusEl, 'err', 'Admin role required.'); return; }
+
+    const name = document.getElementById('evName').value.trim();
+    if (!name) { setStatus(statusEl, 'err', 'Event name is required.'); return; }
+    const dateVal = document.getElementById('evDate').value;
+    const tiers = collectTiersFromForm();
+    if (tiers.length === 0) { setStatus(statusEl, 'err', 'Add at least one ticket tier.'); return; }
+
+    const editingId = document.getElementById('editingEventId').value;
+    const data = {
+      eventName: name,
+      eventDate: dateVal ? new Date(dateVal).toISOString() : null,
+      location: document.getElementById('evLocation').value.trim(),
+      capacity: parseInt(document.getElementById('evCapacity').value, 10) || null,
+      description: document.getElementById('evDescription').value.trim(),
+      tiers,
+      active: document.getElementById('evActive').checked,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    setStatus(statusEl, 'pending', 'Saving…');
+    try {
+      if (editingId) {
+        await db.collection('events').doc(editingId).update(data);
+      } else {
+        data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+        data.createdBy = currentUser.uid;
+        await db.collection('events').add(data);
+      }
+      setStatus(statusEl, 'ok', '✓ Event saved.');
+      resetEventForm();
+      await loadEventsData();
+      renderAdminEventsList();
+      populateStatsEventFilter();
+    } catch (err) {
+      console.error(err);
+      setStatus(statusEl, 'err', 'Could not save the event.');
+    }
+  });
+
+  function renderAdminEventsList() {
+    const list = document.getElementById('adminEventsList');
+    if (!list) return;
+    if (EVENTS.length === 0) { list.innerHTML = '<p class="hint">No events yet — create the first one above.</p>'; return; }
+    list.innerHTML = EVENTS.map(e => `
+      <div class="event-list-row">
+        <div class="info">
+          <b>${escapeHtml(e.eventName)}</b>
+          <span>${fmtDate(e.eventDate)} · ${escapeHtml(e.location || 'No location set')} · ${e.active === false ? 'Inactive' : 'Live'}</span>
+        </div>
+        <div>
+          <button class="btn ghost small edit-event" data-id="${e.id}">Edit</button>
+          <button class="btn ghost small toggle-active" data-id="${e.id}">${e.active === false ? 'Activate' : 'Deactivate'}</button>
+        </div>
+      </div>
+    `).join('');
+    list.querySelectorAll('.edit-event').forEach(btn => btn.addEventListener('click', () => loadEventIntoForm(btn.dataset.id)));
+    list.querySelectorAll('.toggle-active').forEach(btn => btn.addEventListener('click', () => toggleEventActive(btn.dataset.id)));
+  }
+
+  function loadEventIntoForm(id) {
+    const e = eventById(id);
+    if (!e) return;
+    document.getElementById('editingEventId').value = e.id;
+    document.getElementById('evName').value = e.eventName || '';
+    document.getElementById('evDate').value = e.eventDate ? new Date(e.eventDate).toISOString().slice(0, 16) : '';
+    document.getElementById('evLocation').value = e.location || '';
+    document.getElementById('evCapacity').value = e.capacity || '';
+    document.getElementById('evDescription').value = e.description || '';
+    document.getElementById('evActive').checked = e.active !== false;
+    document.getElementById('tierRows').innerHTML = '';
+    (e.tiers || []).forEach(t => addTierRow(t));
+    if ((e.tiers || []).length === 0) { addTierRow(); addTierRow(); addTierRow(); }
+    document.getElementById('cancelEditBtn').style.display = 'inline-block';
+    document.getElementById('saveEventBtn').textContent = 'Update Event';
+    document.getElementById('paneEvents').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  async function toggleEventActive(id) {
+    const e = eventById(id);
+    if (!e) return;
+    try {
+      await db.collection('events').doc(id).update({ active: e.active === false ? true : false });
+      await loadEventsData();
+      renderAdminEventsList();
+      populateStatsEventFilter();
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  // --- Admin data loading ---
+  async function loadAdminData() {
+    await loadEventsData();
+    renderAdminEventsList();
+    populateStatsEventFilter();
+    renderAdminTickets();
+    renderScanHistory();
+  }
+
+  function populateStatsEventFilter() {
+    const el = document.getElementById('statsEventFilter');
+    const current = el.value;
+    el.innerHTML = '<option value="">All events</option>' + EVENTS.map(e => `<option value="${e.id}">${escapeHtml(e.eventName)}</option>`).join('');
+    el.value = current;
+  }
+
+  let ALL_TICKETS_CACHE = [];
+  async function renderAdminTickets() {
+    if (currentRole !== 'admin') return;
+    const tbody = document.getElementById('ticketsTableBody');
+    tbody.innerHTML = '<tr><td colspan="6">Loading…</td></tr>';
+    try {
+      const snap = await db.collection('tickets').orderBy('created_at', 'desc').limit(500).get();
+      ALL_TICKETS_CACHE = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (err) {
+      console.error(err);
+      tbody.innerHTML = '<tr><td colspan="6">Could not load tickets.</td></tr>';
+      return;
+    }
+    applyTicketFilters();
+  }
+
+  function applyTicketFilters() {
+    const eventFilter = document.getElementById('statsEventFilter').value;
+    const search = document.getElementById('ticketSearch').value.trim().toLowerCase();
+    let rows = ALL_TICKETS_CACHE;
+    if (eventFilter) rows = rows.filter(t => t.event_id === eventFilter);
+    if (search) rows = rows.filter(t =>
+      (t.full_name || '').toLowerCase().includes(search) ||
+      (t.phone || '').toLowerCase().includes(search) ||
+      t.id.toLowerCase().includes(search)
+    );
+
+    const statGrid = document.getElementById('statGrid');
+    const total = rows.length;
+    const unused = rows.filter(t => t.status === 'UNUSED').length;
+    const scanned = rows.filter(t => t.status === 'SCANNED').length;
+    const expired = rows.filter(t => t.status === 'EXPIRED').length;
+    let revenue = 0;
+    rows.forEach(t => {
+      const ev = eventById(t.event_id);
+      const tier = ev && (ev.tiers || []).find(x => x.id === t.tier);
+      if (tier) revenue += Number(tier.price) || 0;
+    });
+    statGrid.innerHTML = `
+      <div class="stat-card"><b>${total}</b><span>Total tickets</span></div>
+      <div class="stat-card"><b>${unused}</b><span>Unused</span></div>
+      <div class="stat-card"><b>${scanned}</b><span>Scanned</span></div>
+      <div class="stat-card"><b>${expired}</b><span>Expired</span></div>
+      <div class="stat-card"><b>Ksh ${revenue.toLocaleString()}</b><span>Revenue (est.)</span></div>
+    `;
+
+    const tbody = document.getElementById('ticketsTableBody');
+    tbody.innerHTML = rows.length ? rows.map(t => `
+      <tr>
+        <td>${escapeHtml(t.full_name)}</td>
+        <td>${escapeHtml(t.phone)}</td>
+        <td>${escapeHtml(t.tier)}</td>
+        <td><span class="badge-status ${t.status}">${t.status}</span></td>
+        <td class="mono">${t.id}</td>
+        <td>${t.created_at && t.created_at.toDate ? t.created_at.toDate().toLocaleString('en-KE') : '—'}</td>
+      </tr>
+    `).join('') : '<tr><td colspan="6">No tickets match.</td></tr>';
+  }
+  document.getElementById('statsEventFilter').addEventListener('change', applyTicketFilters);
+  document.getElementById('ticketSearch').addEventListener('input', applyTicketFilters);
+
+  async function renderScanHistory() {
+    if (currentRole !== 'admin') return;
+    const tbody = document.getElementById('scansTableBody');
+    tbody.innerHTML = '<tr><td colspan="5">Loading…</td></tr>';
+    try {
+      const snap = await db.collection('scanHistory').orderBy('scanned_at', 'desc').limit(300).get();
+      const rows = snap.docs.map(d => d.data());
+      tbody.innerHTML = rows.length ? rows.map(r => `
+        <tr>
+          <td>${r.scanned_at && r.scanned_at.toDate ? r.scanned_at.toDate().toLocaleString('en-KE') : '—'}</td>
+          <td class="mono">${escapeHtml(r.ticket_id || '—')}</td>
+          <td><span class="badge-status ${r.status === 'success' ? 'SCANNED' : r.status === 'already_scanned' ? 'EXPIRED' : 'UNUSED'}">${r.status}</span></td>
+          <td>${escapeHtml(r.staff_email || r.staff_uid || 'unknown')}</td>
+          <td>${escapeHtml(r.notes || '')}</td>
+        </tr>
+      `).join('') : '<tr><td colspan="5">No scans logged yet.</td></tr>';
+    } catch (err) {
+      console.error(err);
+      tbody.innerHTML = '<tr><td colspan="5">Could not load scan history.</td></tr>';
+    }
+  }
+
+  showConfigBannerIfNeeded();
+  initAuthBootstrap(onAuthReady);
+</script>
+</body>
+</html>
