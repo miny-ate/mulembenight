@@ -41,7 +41,7 @@ const firebaseConfig = {
 
 const TICKET_SALT = "062969a8e151f9e71938060bd1101632e4ae0e5313384422b0d36517ee5a3607"; // move server-side in production
 
-const isConfigured = firebaseConfig.apiKey !== "AIzaSyDNFUBzxkm7uSs-bt5uuzE8PNzRdIsFg_4";
+const isConfigured = firebaseConfig.apiKey;
 
 let db = null;
 if (isConfigured) {
